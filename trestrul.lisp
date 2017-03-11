@@ -1,6 +1,5 @@
 (in-package :cl-user)
 (defpackage :trestrul (:use :cl)
-  (:import-from :documentation-embedder #:doc)
   (:export
     ;;;; main api - tree functions
     #:mapleaf
@@ -27,7 +26,6 @@
   'LIST)
 
 (defun treep(arg)
-  #.(doc :trestrul "doc/treep.F.md")
   (listp arg))
 
 (deftype proper-tree()
@@ -35,7 +33,6 @@
   '(SATISFIES PROPER-TREEP))
 
 (defun proper-treep(arg)
-  #.(doc :trestrul "doc/proper-treep.F.md")
   (labels((REC(arg)
 	    (typecase arg
 	      (NULL t)
@@ -48,7 +45,6 @@
     (REC arg)))
 
 (defun mapleaf(fun tree)
-  #.(doc :trestrul "doc/mapleaf.F.md")
   (check-type tree tree)
   (labels((REC(tree)
 	    (cond
@@ -59,7 +55,6 @@
     (REC tree)))
 
 (defun nmapleaf(fun tree)
-  #.(doc :trestrul "doc/nmapleaf.F.md")
   (check-type tree tree)
   (labels((REC(tree)
 	    (cond
