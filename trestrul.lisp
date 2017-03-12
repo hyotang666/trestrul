@@ -163,28 +163,41 @@
 	   (GO ,top))))))
 
 (defun collect-node(target tree &key (key #'identity)(test #'eql)recursive-p)
-  (macrolet((expand(flag)
-	      `(LABELS((REC(TREE &OPTIONAL ACC)
-			 (COND
-			   ((NULL TREE) ; END OF PROPER LIST
-			    (IF(FUNCALL TEST TARGET (FUNCALL KEY TREE))
-			      (NRECONC ACC (LIST TREE))
-			      (NREVERSE ACC)))
-			   ((ATOM TREE) ; END OF DOTTED LIST
-			    (NREVERSE ACC))
-			   (T ; PROGRESS
-			     (LET((ELT(CAR TREE)))
-			       (IF(LISTP ELT)
-				 (IF(FUNCALL TEST TARGET(FUNCALL KEY ELT))
-				   ,(if flag
-				      `(REC (CDR TREE)(REC ELT (PUSH ELT ACC)))
-				      `(REC (CDR TREE)(PUSH ELT ACC)))
-				   (REC (CDR TREE) ACC))
-				 (REC (CDR TREE) ACC)))))))
+  (check-type tree tree)
+  (macrolet((expand(rec-p)
+	      `(LABELS((REC(TREE)
+			 (ETYPECASE TREE
+			   (NULL ; END OF PROPER LIST
+			     (WHEN(FUNCALL TEST TARGET (FUNCALL KEY TREE))
+			       (PUSH TREE ACC)))
+			   (ATOM ; END OF DOTTED LIST
+			     NIL) ; ignore leaf.
+			   (CONS ; PROGRESS
+			     (BODY(CAR TREE)(CDR TREE)))))
+		       (BODY(ELT REST)
+			 (IF(LISTP ELT)
+			   (ELT-IS-NODE ELT REST)
+			   (REC REST))) ; ignore leaf.
+		       (ELT-IS-NODE(NODE REST)
+			 (IF(FUNCALL TEST TARGET(FUNCALL KEY NODE))
+			   (TARGET-IS-FOUND NODE REST)
+			   (PROGN (REC NODE)
+				  (REC REST))))
+		       (TARGET-IS-FOUND(FOUND REST)
+			 ,(if (not rec-p)
+			    `(PROGN (PUSH FOUND ACC)
+				   (REC REST))
+			    `(PROGN (PUSH FOUND ACC)
+				    (WHEN FOUND
+				      (REC FOUND))
+				    (REC REST))))
+		       )
 		(REC TREE))))
-    (if recursive-p
-      (expand t)
-      (expand nil))))
+    (let(acc)
+      (if recursive-p
+	(expand t)
+	(expand nil))
+      (nreverse acc))))
 
 (defun asubst(substituter target tree &key(test #'eql)(key #'identity))
   (if(funcall test target (funcall key tree))
