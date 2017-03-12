@@ -71,7 +71,7 @@
 ; test := function-designator which designate the function which accepts two arguments.
 ; Otherwise error.
 ; The default is CL:EQL.
-#?(remove-leaf "1" '("2" "1" "0"))
+#?(remove-leaf (princ-to-string 1) (list "2" "1" "0"))
 => ("2" "1" "0")
 ,:test equal
 #?(remove-leaf "1" '("2" "1" "0") :test 'string=)
@@ -198,6 +198,7 @@
 #?(dotree(l 'tree)
     (princ l))
 :signals type-error
+,:ignore-signals warning
 
 ; return := return form which evaluated only once after iteration.
 #?(dotree(l '(1 2 . 3) :result)
