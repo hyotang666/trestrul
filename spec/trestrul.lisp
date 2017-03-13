@@ -53,8 +53,8 @@
 
 ;;;; Description:
 ; remove specified LEAF from TREE.
-#?(remove-leaf 1 '(1 2 3 (4)))
-=> (2 3 (4))
+#?(remove-leaf 4 '(1 2 3 (4)))
+=> (1 2 3 ())
 ,:test tree-equal
 
 #+syntax
@@ -240,6 +240,11 @@
       (princ l)))
 :outputs "12"
 
+; When empty tree comes, only return form is evaluated.
+#?(dotree(l () :hoge)
+    (princ l))
+=> :hoge
+
 ; When CL:RETURN is called, RETURN form is not evaluated.
 #?(dotree(l '(1 2 3 4)(princ l))
     (if(= l 3)
@@ -326,6 +331,7 @@
 => (NIL NIL NIL NIL NIL)
 ;; i.e. ((:tag 1 NIL (:tag 2 NIL . NIL) . NIL) . NIL)
 ,:test equal
+; Works fine even if :recirsive-p T is specified (i.e. never infinite loop).
 #?(collect-node nil '((:tag 1 NIL(:tag 2 NIL)))
 		:recursive-p T)
 => (NIL NIL NIL NIL NIL)
@@ -351,7 +357,7 @@
 			   :as op)
 
 ;;;; Description:
-; Substitute leaf with applying substituter.
+; Substitute tree with applying substituter.
 #?(op #'princ-to-string 1 '(1 2 3 1 2 3))
 => ("1" 2 3 "1" 2 3)
 ,:test equal
@@ -374,7 +380,7 @@
 
 ; test := function designator which designates the function which accepts two arguments to test equality.
 #?(op #'parse-integer "0" '("1" "2" "3" "0")
-	  :test #'equal)
+      :test #'equal)
 => ("1" "2" "3" 0)
 ,:test equal
 ; If it is not function designator, an error is signaled.
@@ -493,6 +499,7 @@
 #?(typep :atom 'tree) => NIL
 
 ;;;; Compound Type Specifier Kind:
+; none
 
 ;;;; Compound Type Specifier Syntax:
 
@@ -509,7 +516,9 @@
 #?(typep :atom 'proper-tree) => NIL
 #?(typep '((:a :b)) 'proper-tree) => T
 #?(typep '((:a . :b) :c) 'proper-tree) => NIL
+
 ;;;; Compound Type Specifier Kind:
+; none
 
 ;;;; Compound Type Specifier Syntax:
 
