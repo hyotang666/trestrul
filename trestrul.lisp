@@ -18,6 +18,8 @@
     ;;;; predicates
     #:treep
     #:proper-treep
+    ;;;; conditions
+    #:invalid-tree
     ))
 (in-package :trestrul)
 
@@ -44,31 +46,81 @@
 	    (REC rest)))
     (REC arg)))
 
-(defun mapleaf(fun tree)
-  (check-type tree tree)
-  (labels((REC(tree)
-	    (cond
-	      ((null tree)tree)
-	      ((atom tree)(funcall fun tree))
-	      (t (cons (REC (car tree))
-		       (REC (cdr tree)))))))
-    (REC tree)))
+(define-condition invalid-tree(simple-type-error)())
 
-(defun nmapleaf(fun tree)
-  (check-type tree tree)
-  (labels((REC(tree)
-	    (cond
-	      ((null tree)tree)
-	      ((atom tree)(funcall fun tree))
-	      (t (rplaca tree (REC (car tree)))
-		 (rplacd tree (REC (cdr tree)))))))
-    (REC tree)))
+(macrolet((check(form type api)
+	    (let((datum(gensym "DATUM")))
+	      `(LET((,datum ,form))
+		 (ASSERT (TYPEP ,datum ',type)()
+			 'INVALID-TREE
+			 :FORMAT-CONTROL "~S: Must tree but ~S"
+			 :FORMAT-ARGUMENTS (LIST ',api ,datum)
+			 :EXPECTED-TYPE 'TREE
+			 :DATUM ,datum)))))
+
+  (defun mapleaf(fun tree)
+    (check tree tree mapleaf)
+    (labels((REC(tree)
+	      (cond
+		((null tree)tree)
+		((atom tree)(funcall fun tree))
+		(t (cons (REC (car tree))
+			 (REC (cdr tree)))))))
+      (REC tree)))
+
+  (defun nmapleaf(fun tree)
+    (check tree tree nmapleaf)
+    (labels((REC(tree)
+	      (cond
+		((null tree)tree)
+		((atom tree)(funcall fun tree))
+		(t (rplaca tree (REC (car tree)))
+		   (rplacd tree (REC (cdr tree)))))))
+      (REC tree)))
+
+  (defun collect-node(target tree &key (key #'identity)(test #'eql)recursive-p)
+    (check tree tree collect-node)
+    (macrolet((expand(rec-p)
+		`(LABELS((REC(TREE)
+			   (ETYPECASE TREE
+				      (NULL ; END OF PROPER LIST
+					(WHEN(FUNCALL TEST TARGET (FUNCALL KEY TREE))
+					  (PUSH TREE ACC)))
+				      (ATOM ; END OF DOTTED LIST
+					NIL) ; ignore leaf.
+				      (CONS ; PROGRESS
+					(BODY(CAR TREE)(CDR TREE)))))
+			 (BODY(ELT REST)
+			   (IF(LISTP ELT)
+			     (ELT-IS-NODE ELT REST)
+			     (REC REST))) ; ignore leaf.
+			 (ELT-IS-NODE(NODE REST)
+			   (IF(FUNCALL TEST TARGET(FUNCALL KEY NODE))
+			     (TARGET-IS-FOUND NODE REST)
+			     (PROGN (REC NODE)
+				    (REC REST))))
+			 (TARGET-IS-FOUND(FOUND REST)
+			   ,(if (not rec-p)
+			      `(PROGN (PUSH FOUND ACC)
+				      (REC REST))
+			      `(PROGN (PUSH FOUND ACC)
+				      (WHEN FOUND
+					    (REC FOUND))
+				      (REC REST))))
+			 )
+		   (REC TREE))))
+      (let(acc)
+	(if recursive-p
+	  (expand t)
+	  (expand nil))
+	(nreverse acc))))
+  )
 
 (defun remove-leaf(item tree &key(test #'eql)(key #'identity)(keep t))
-  (macrolet((traverse(var keep)
+  (macrolet((traverse(keep)
 	      (flet((!(form)
 		      `(HANDLER-CASE,form
-			 (ERROR()(ERROR 'SIMPLE-TYPE-ERROR
+			 (ERROR()(ERROR 'INVALID-TREE
 					:FORMAT-CONTROL "REMOVE-LEAF accepts only proper tree, but ~S.~&About PROPER-TREE, evaluate (describe '~S)."
 					:FORMAT-ARGUMENTS (LIST TREE 'PROPER-TREE)
 					:EXPECTED-TYPE 'PROPER-TREE
@@ -90,16 +142,16 @@
 					 (IF(FUNCALL TEST ITEM(FUNCALL KEY FIRST))
 					   ACC
 					   (PUSH FIRST ACC)))))))
-		   (REC,(!`(CAR ,var))(CDR ,var))))))
+		   (REC,(!`(CAR TREE))(CDR TREE))))))
     (if keep
-      (traverse tree t)
-      (traverse tree nil))))
+      (traverse t)
+      (traverse nil))))
 
 (defun remove-leaf-if(function tree &key(key #'identity)(keep t))
   (macrolet((traverse(keep)
 	      (flet((!(form)
 		      `(HANDLER-CASE,form
-			 (ERROR()(ERROR 'SIMPLE-TYPE-ERROR
+			 (ERROR()(ERROR 'INVALID-TREE
 					:FORMAT-CONTROL "REMOVE-LEAF-IF accepts only proper tree, but ~S.~&About PROPER-TREE, evaluate (describe '~S)."
 					:FORMAT-ARGUMENTS (LIST TREE 'PROPER-TREE)
 					:EXPECTED-TYPE 'PROPER-TREE
@@ -133,11 +185,11 @@
 		  :collect sexp :into declares
 		  :else :collect sexp :into bodies
 		  :finally (return (values declares bodies))))
-	  (!(form var node)
+	  (!(form node)
 	    `(HANDLER-CASE,form
-	       (ERROR()(ERROR'SIMPLE-TYPE-ERROR
-			 :FORMAT-CONTROL "~S: Variable ~S must bound by type of TREE, but ~S.~%About type TREE, evaluate (DESCRIBE '~S)."
-			 :FORMAT-ARGUMENTS(LIST 'DOTREE ',var ,node 'TREE)
+	       (ERROR()(ERROR'INVALID-TREE
+			 :FORMAT-CONTROL "~S: Form TREE must generate TREE, but ~S.~%About type TREE, evaluate (DESCRIBE '~S)."
+			 :FORMAT-ARGUMENTS(LIST 'DOTREE ,node 'TREE)
 			 :EXPECTED-TYPE 'TREE :DATUM ,node))))
 	  )
     (let((node (gensym "NODE"))
@@ -146,7 +198,7 @@
 	 (elt (gensym "ELT")))
       (multiple-value-bind(declares body)(SPLIT-DECLARE body)
 	`(PROG*((,node ,tree)
-		(,elt ,(! `(CAR ,node) var node))
+		(,elt ,(! `(CAR ,node) node))
 		(,rest (CDR ,node)))
 	   ,top
 	   (IF(AND(NULL ,rest)(NULL ,elt))
@@ -165,43 +217,6 @@
 			(SETF ,elt (CAR ,rest)
 			      ,rest (CDR ,rest))))))
 	   (GO ,top))))))
-
-(defun collect-node(target tree &key (key #'identity)(test #'eql)recursive-p)
-  (check-type tree tree)
-  (macrolet((expand(rec-p)
-	      `(LABELS((REC(TREE)
-			 (ETYPECASE TREE
-			   (NULL ; END OF PROPER LIST
-			     (WHEN(FUNCALL TEST TARGET (FUNCALL KEY TREE))
-			       (PUSH TREE ACC)))
-			   (ATOM ; END OF DOTTED LIST
-			     NIL) ; ignore leaf.
-			   (CONS ; PROGRESS
-			     (BODY(CAR TREE)(CDR TREE)))))
-		       (BODY(ELT REST)
-			 (IF(LISTP ELT)
-			   (ELT-IS-NODE ELT REST)
-			   (REC REST))) ; ignore leaf.
-		       (ELT-IS-NODE(NODE REST)
-			 (IF(FUNCALL TEST TARGET(FUNCALL KEY NODE))
-			   (TARGET-IS-FOUND NODE REST)
-			   (PROGN (REC NODE)
-				  (REC REST))))
-		       (TARGET-IS-FOUND(FOUND REST)
-			 ,(if (not rec-p)
-			    `(PROGN (PUSH FOUND ACC)
-				   (REC REST))
-			    `(PROGN (PUSH FOUND ACC)
-				    (WHEN FOUND
-				      (REC FOUND))
-				    (REC REST))))
-		       )
-		(REC TREE))))
-    (let(acc)
-      (if recursive-p
-	(expand t)
-	(expand nil))
-      (nreverse acc))))
 
 (defun asubst(substituter target tree &key(test #'eql)(key #'identity))
   (if(funcall test target (funcall key tree))

@@ -581,3 +581,25 @@
 
 ;;;; Exceptional-Situations:
 
+(requirements-about INVALID-TREE)
+
+;;;; Description:
+;;;; Class Precedence List: (case in SBCL)
+; invalid-tree simple-type-error simple-condition type-error error serious-condition condition slot-object t
+
+;;;; Effective Slots:
+
+; FORMAT-CONTROL [Type] T
+; [READER] simple-condition-format-control
+
+; FORMAT-ARGUMENTS [Type] T
+; [READER] simple-condition-format-arguments
+
+; DATUM [Type] T
+; [READER] type-error-datum
+
+; EXPECTED-TYPE [Type] T
+; [READER] type-error-expected-type
+
+;;;; Notes:
+
