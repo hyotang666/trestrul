@@ -17,10 +17,10 @@
 ;;;; Arguments and Values:
 
 ; fun := function which accepts one argument. Otherwise error.
-#?(op 0 '(1 2 3 4)) :signals error
+#?(op 0 '(1 2 3 4)) :signals undefined-function
 
 ; tree := tree structured list. Otherwise error.
-#?(op #'1+ 1) :signals type-error
+#?(op #'1+ 1) :signals invalid-tree
 
 ; result := see below.
 
@@ -66,7 +66,7 @@
 #?(remove-leaf () '(()1 2)) => unspecified
 
 ; tree := tree structured list, otherwise error.
-#?(remove-leaf 1 1) :signals type-error
+#?(remove-leaf 1 1) :signals invalid-tree
 
 ; test := function-designator which designate the function which accepts two arguments.
 ; Otherwise error.
@@ -78,7 +78,7 @@
 => ("2" "0")
 ,:test equal
 #?(remove-leaf "1" '("2" "1" "0") :test :not-function-designator)
-:signals error
+:signals undefined-function
 
 ; key := function-designator which designates the function which accepts one argument.
 ; Otherwise error.
@@ -90,7 +90,7 @@
 => ("2" "0")
 ,:test equal
 #?(remove-leaf "1" '("2" "1" "0") :key :not-function-designator)
-:signals error
+:signals undefined-function
 
 ; keep := boolean
 ; control flag, whether keep empty node (i.e. NIL) or not.
@@ -137,15 +137,15 @@
 => ((2)4)
 ,:test tree-equal
 #?(remove-leaf-if :not-function-designator '(1 (2 3) 4))
-:signals error
+:signals undefined-function
 
 ; tree := tree structured list, otherwise error.
 #?(remove-leaf-if #'evenp 0)
-:signals type-error
+:signals invalid-tree
 
 ; key := function-desinator which designates the function which accepts one argument.
 #?(remove-if #'evenp '("1" "2" "3"))
-:signals error
+:signals type-error
 #?(remove-if #'evenp '("1" "2" "3") :key #'parse-integer)
 => ("1" "3")
 ,:test equal
@@ -197,7 +197,7 @@
 ; an error is signaled.
 #?(dotree(l 'tree)
     (princ l))
-:signals type-error
+:signals invalid-tree
 ,:ignore-signals warning
 
 ; return := return form which evaluated only once after iteration.
@@ -285,21 +285,21 @@
 ; target := T
 
 ; tree := tree structured list. Otherwise error.
-#?(collect-node :hoge :not-tree) :signals error
+#?(collect-node :hoge :not-tree) :signals invalid-tree
 
 ; key := function designator which designates the function which accepts one node as argument.
 ; The default is CL:IDENTITY.
 ; If it is not function designator, an error is signaled.
 #?(collect-node :use '((:use :cl)(:export :a :b :c))
 		:key :not-function-designator)
-:signals error
+:signals undefined-function
 
 ; test := function designator which designates the function which accepts two arguments.
 ; The default is CL:EQL.
 ; if it is not function-designator, an error is signaled.
 #?(collect-node '(:use :cl) '((:use :cl)(:export :a :b :c))
 		:test :not-function-designator)
-:signals error
+:signals undefined-function
 
 ; recursive-p := boolean which control whether call collect-node recursively or not.
 #?(collect-node :tag '((:tag recursively (:tag)))
@@ -370,7 +370,7 @@
 ; substituter := function-designator which designates the function which accepts one argument.
 ; If it is not function-designator, an error is signaled.
 #?(op :not-function-designator 1 '(1 2 3))
-:signals error
+:signals undefined-function
 
 ; target := any lisp object.
 
@@ -386,7 +386,7 @@
 ; If it is not function designator, an error is signaled.
 #?(op #'identity 0 '(1 2 3)
 	  :test :not-function-designator)
-:signals error
+:signals undefined-function
 
 ; key := function designator which designates the function which accepts one argument.
 #?(op (constantly :zero) 0 '("1" "2" "3" "0")
@@ -451,12 +451,12 @@
 	       (unless(listp x)
 		 (numberp x)))
 	     '(1 2 3 4 5))
-:signals error
+:signals undefined-function
 
 ; predicate := function designator which desigates the function which accepts one argument.
 ; if it is not funciton designator, an error is signaled.
 #?(asubst-if #'identity :not-function-designator '(1 2 3))
-:signals error
+:signals undefined-function
 
 ; tree := leaf or tree structured list.
 #?(asubst-if #'symbol-name #'symbolp :hoge)
@@ -474,7 +474,7 @@
 ,:test equal
 #?(asubst-if #'string #'null '(hoge :hoge #:hoge nil)
 	     :key :not-function-designator)
-:signals error
+:signals undefined-function
 
 ; result := substituted leaf or tree.
 
