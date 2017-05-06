@@ -17,7 +17,7 @@
 ;;;; Arguments and Values:
 
 ; fun := function which accepts one argument. Otherwise error.
-#?(op 0 '(1 2 3 4)) :signals undefined-function
+#?(op 0 '(1 2 3 4)) :signals error
 
 ; tree := tree structured list. Otherwise error.
 #?(op #'1+ 1) :signals invalid-tree
