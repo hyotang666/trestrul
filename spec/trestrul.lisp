@@ -370,7 +370,9 @@
 ; substituter := function-designator which designates the function which accepts one argument.
 ; If it is not function-designator, an error is signaled.
 #?(op :not-function-designator 1 '(1 2 3))
-:signals undefined-function
+:signals (or undefined-function
+	     error ; for ccl
+	     )
 
 ; target := any lisp object.
 
@@ -386,7 +388,9 @@
 ; If it is not function designator, an error is signaled.
 #?(op #'identity 0 '(1 2 3)
 	  :test :not-function-designator)
-:signals undefined-function
+:signals (or undefined-function
+	     error ; for ccl
+	     )
 
 ; key := function designator which designates the function which accepts one argument.
 #?(op (constantly :zero) 0 '("1" "2" "3" "0")
@@ -451,12 +455,16 @@
 	       (unless(listp x)
 		 (numberp x)))
 	     '(1 2 3 4 5))
-:signals undefined-function
+:signals (or undefined-function
+	     error ; for ccl
+	     )
 
 ; predicate := function designator which desigates the function which accepts one argument.
 ; if it is not funciton designator, an error is signaled.
 #?(asubst-if #'identity :not-function-designator '(1 2 3))
-:signals undefined-function
+:signals (or undefined-function
+	     error ; for ccl
+	     )
 
 ; tree := leaf or tree structured list.
 #?(asubst-if #'symbol-name #'symbolp :hoge)
