@@ -1,6 +1,6 @@
 (defpackage :trestrul.spec (:use :cl :jingoh :trestrul))
 (in-package :trestrul.spec)
-(setup :trestrul.spec)
+(setup :trestrul)
 
 (common-requirements-about (mapleaf nmapleaf)
 			   :as op)
