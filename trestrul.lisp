@@ -11,7 +11,7 @@
     #:asubst
     #:asubst-if
     #:ansubst
-    #:snsubst-if
+    #:ansubst-if
     ;;;; types
     #:tree
     #:proper-tree
