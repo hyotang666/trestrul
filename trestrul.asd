@@ -5,7 +5,7 @@
 (defsystem :trestrul
   :description "Tiny utilities for TREe-STRUctured-List."
   :long-description #.(uiop:read-file-string
-                        (uiop:subpathname "README.md" *load-pathname*))
+                        (uiop:subpathname *load-pathname* "README.md"))
   :author "Shinichi Sato"
   :components ((:file "trestrul")))
 
