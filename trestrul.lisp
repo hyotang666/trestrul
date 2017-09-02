@@ -12,6 +12,7 @@
     #:asubst-if
     #:ansubst
     #:ansubst-if
+    #:find-leaf
     ;;;; types
     #:tree
     #:proper-tree
@@ -249,3 +250,8 @@
       tree
       (progn (rplaca tree (ansubst-if substituter predicate (car tree) :key key))
 	     (rplacd tree (ansubst-if substituter predicate (cdr tree) :key key))))))
+
+(defun find-leaf(target tree &key (test #'eql)(key #'identity))
+  (dotree(var tree)
+    (when(funcall test target (funcall key var))
+      (return var))))

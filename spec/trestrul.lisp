@@ -611,3 +611,38 @@
 
 ;;;; Notes:
 
+(requirements-about FIND-LEAF)
+
+;;;; Description:
+; Find target from tree.
+
+#+syntax
+(FIND-LEAF target tree &key (test #'eql) (key #'identity)) ; => result
+
+#?(find-leaf 0 '(1 (2 . 3)((0)))) => 0
+
+;;;; Arguments and Values:
+
+; target := T
+
+; tree := Tree, otherwise error.
+#?(find-leaf 0 0) :signals error
+
+; test := Function as `(FUNCTION(T T)BOOLEAN)`, the default is #'EQL.
+
+; key := Function as `(FUNCTION(T)T)`, the default is #'IDENTITY.
+
+; result := T
+
+;;;; Affected By:
+; none
+
+;;;; Side-Effects:
+; none
+
+;;;; Notes:
+; Same as `CL:FIND`, `FIND-LEAF` can not find `NIL`.
+#?(find-leaf nil '(())) => NIL
+
+;;;; Exceptional-Situations:
+
