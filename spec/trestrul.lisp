@@ -646,3 +646,53 @@
 
 ;;;; Exceptional-Situations:
 
+(requirements-about TRAVERSE)
+
+;;;; Description:
+; Traverse TREE with doing FUNCTION.
+; This is `MAPC` like operator.
+
+#+syntax
+(TRAVERSE function tree) ; => result
+
+#?(traverse #'print '(1 (2 . 3) 4))
+:outputs "
+(1 (2 . 3) 4) 
+1 
+((2 . 3) 4) 
+(2 . 3) 
+2 
+3 
+(4) 
+4 
+NIL "
+
+;;;; Arguments and Values:
+
+; function := Function as (FUNCTION(T)T).
+; Otherwise error.
+#?(traverse "NOT-FUNCTION" '(1 2 3))
+:signals error
+; This function's return value is discarded.
+
+; tree := Tree structured list.
+; Atom is acceptable.
+#?(traverse #'print :atom)
+:outputs "
+:ATOM "
+
+; result := NIL
+#?(traverse #'print :atom)
+=> NIL
+,:stream NIL
+
+;;;; Affected By:
+; none
+
+;;;; Side-Effects:
+; none
+
+;;;; Notes:
+
+;;;; Exceptional-Situations:
+
