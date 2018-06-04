@@ -10,6 +10,5 @@
   :license "Public Domain"
   :components ((:file "trestrul")))
 
-;; Perform method below is added by JINGOH.GENERATOR.
-(defmethod perform ((o test-op) (c (eql (find-system "trestrul"))))
- (test-system :trestrul.test))
+(defmethod component-depends-on ((o test-op) (c (eql (find-system "trestrul"))))
+  (append (call-next-method)'((test-op "trestrul.test"))))
