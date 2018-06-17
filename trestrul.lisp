@@ -13,6 +13,7 @@
     #:ansubst
     #:ansubst-if
     #:find-leaf
+    #:find-leaf-if
     #:traverse
     ;;;; types
     #:tree
@@ -262,3 +263,8 @@
   (unless(atom tree)
     (traverse function (car tree))
     (traverse function (cdr tree))))
+
+(defun find-leaf-if(pred tree &key (key #'identity))
+  (dotree(var tree)
+    (when(funcall pred (funcall key var))
+      (return var))))

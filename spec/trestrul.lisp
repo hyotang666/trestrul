@@ -696,3 +696,49 @@ NIL "
 
 ;;;; Exceptional-Situations:
 
+(requirements-about FIND-LEAF-IF)
+
+;;;; Description:
+; Find element which satisfies PRED from TREE.
+
+#+syntax
+(FIND-LEAF-IF pred tree &key (key #'identity)) ; => result
+
+#?(find-leaf-if #'oddp '(2 (3 . 4) 5))
+=> 3
+;;;; Arguments and Values:
+
+; pred := function designator as (function(T)T).
+#?(find-leaf-if 'oddp '(1 2 3))
+=> 1
+; otherwise error
+#?(find-leaf-if "NOT-FUNCTION" '(1 2 3))
+:signals error
+
+; tree := tree structured list.
+; atom is not acceptable.
+#?(find-leaf-if #'oddp 1) :signals error
+
+; key := function designator as (function(T)T).
+#?(find-leaf-if #'oddp '("1" "2" "3") :key #'parse-integer)
+=> "1"
+,:test equal
+#?(find-leaf-if #'oddp '("1" "2" "3") :key 'parse-integer)
+=> "1"
+,:test equal
+; otherwise error.
+#?(find-leaf-if #'oddp '("1" "2" "3") :key "NOT-FUNCTION")
+:signals error
+
+; result := T
+
+;;;; Affected By:
+; none
+
+;;;; Side-Effects:
+; none
+
+;;;; Notes:
+
+;;;; Exceptional-Situations:
+
