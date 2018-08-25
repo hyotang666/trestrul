@@ -261,8 +261,10 @@
 (defun traverse(function tree)
   (funcall function tree)
   (unless(atom tree)
-    (traverse function (car tree))
-    (traverse function (cdr tree))))
+    (catch 'traverse
+	   (traverse function (car tree)))
+    (catch 'traverse
+	   (traverse function (cdr tree)))))
 
 (defun find-leaf-if(pred tree &key (key #'identity))
   (dotree(var tree)
