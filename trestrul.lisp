@@ -14,6 +14,7 @@
     #:ansubst-if
     #:find-leaf
     #:find-leaf-if
+    #:find-node-if
     #:traverse
     ;;;; types
     #:tree
@@ -270,3 +271,15 @@
   (dotree(var tree)
     (when(funcall pred (funcall key var))
       (return var))))
+
+(defun find-node-if(pred tree &key (count 1)recursive-p)
+  (check-type count (integer 1 *))
+  (traverse (lambda(node)
+	      (when(and (listp node)
+			(funcall pred node)
+			(cond
+			  ((zerop (decf count)) t)
+			  (recursive-p nil)
+			  (t (throw 'traverse nil))))
+		(return-from find-node-if node)))
+	    tree))
