@@ -693,6 +693,21 @@ NIL "
 ; none
 
 ;;;; Notes:
+; `TRAVERSE` dinamically construct `CATCH` tag named `TRAVERSE`.
+; You can use it to skip traversing.
+#?(traverse (lambda(x)
+	      (if(and (listp x)
+		      (eql 2 (car x)))
+		(throw 'traverse nil)
+		(print x)))
+	    '(1 (2 . 3) 4))
+:outputs "
+(1 (2 . 3) 4) 
+1 
+((2 . 3) 4) 
+(4) 
+4 
+NIL "
 
 ;;;; Exceptional-Situations:
 
@@ -729,6 +744,71 @@ NIL "
 ; otherwise error.
 #?(find-leaf-if #'oddp '("1" "2" "3") :key "NOT-FUNCTION")
 :signals error
+
+; result := T
+
+;;;; Affected By:
+; none
+
+;;;; Side-Effects:
+; none
+
+;;;; Notes:
+
+;;;; Exceptional-Situations:
+
+(requirements-about FIND-NODE-IF)
+
+;;;; Description:
+; Find node which satisfies `PRED` from `TREE`.
+
+#+syntax
+(FIND-NODE-IF pred tree &key (count 1) recursive-p) ; => result
+
+;;;; Arguments and Values:
+
+; pred := Function designator as (function (list) boolean), otherwise error.
+#?(find-node-if "not function designator" '(:dummy))
+:signals error
+
+; tree := Tree, which include atom.
+#?(find-node-if #'identity "atom") => NIL
+
+; count := (integer 1 *), otherwise error.
+#?(find-node-if #'identity nil :count "not (integer 1 *)")
+:signals error
+; `COUNT` specify Nth value. The default is 1.
+#?(find-node-if (lambda(x)(typep x '(cons (eql :a)*)))
+		'((:a 1)(:a 2)(:a 3)))
+=> (:a 1)
+,:test equal
+#?(find-node-if (lambda(x)(typep x '(cons (eql :a)*)))
+		'((:a 1)(:a 2)(:a 3))
+		:count 2)
+=> (:A 2)
+,:test equal
+#?(find-node-if (lambda(x)(typep x '(cons (eql :a)*)))
+		'((:a 1)(:a 2)(:a 3))
+		:count 3)
+=> (:A 3)
+,:test equal
+#?(find-node-if (lambda(x)(typep x '(cons (eql :a)*)))
+		'((:a 1)(:a 2)(:a 3))
+		:count 4)
+=> NIL
+
+; recursive-p := Generalized boolean. The default is `NIL`.
+#?(find-node-if (lambda(x)(eq :a (car x)))
+		'((:a 1 :a 2 :a 3) (:a 4))
+		:count 2)
+=> (:A 4)
+,:test equal
+#?(find-node-if (lambda(x)(eq :a (car x)))
+		'((:a 1 :a 2 :a 3)(:a 4))
+		:count 2
+		:recursive-p t)
+=> (:A 2 :A 3)
+,:test equal
 
 ; result := T
 
