@@ -822,3 +822,52 @@ NIL "
 
 ;;;; Exceptional-Situations:
 
+(requirements-about PATH-TO)
+
+;;;; Description:
+; Return list of functions, which guide you to target item in the tree.
+; Secondary value is foundp.
+#?(path-to 1 1) :values (NIL T)
+#?(path-to 1 '(1))
+:multiple-value-satisfies #`(& (listp $v1)
+			       (= 1 (length $v1))
+			       (eq #'car (car $v1))
+			       (eql 1 (reduce (lambda(tree path)
+						(funcall path tree))
+					      $v1
+					      :initial-value '(1)))
+			       (eq t $v2))
+#?(path-to 1 '(2)) :values (NIL NIL)
+#?(path-to 2 '(1 . 2))
+:multiple-value-satisfies #`(& (listp $v1)
+			       (= 1 (length $v1))
+			       (eq #'cdr (car $v1))
+			       (eql 2 (reduce (lambda(tree path)
+						(funcall path tree))
+					      $v1
+					      :initial-value '(1 . 2)))
+			       (eq t $v2))
+
+#+syntax
+(PATH-TO item tree &key (test #'eql)) ; => result
+
+;;;; Arguments and Values:
+
+; item := T
+
+; tree := Tree structured list, include atom. i.e. T.
+
+; test := (function(t t)generalized-boolean).
+
+; result := (values (function*) boolean)
+
+;;;; Affected By:
+; none
+
+;;;; Side-Effects:
+; none
+
+;;;; Notes:
+
+;;;; Exceptional-Situations:
+

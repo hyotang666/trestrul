@@ -16,6 +16,7 @@
     #:find-leaf-if
     #:find-node-if
     #:traverse
+    #:path-to
     ;;;; types
     #:tree
     #:proper-tree
@@ -283,3 +284,13 @@
 			  (t (throw 'traverse nil))))
 		(return-from find-node-if node)))
 	    tree))
+
+(defun path-to(item tree &key (test #'eql))
+  (labels((rec(tree &optional path)
+	    (when(funcall test item tree)
+	      (return-from path-to (values (nreverse path) T)))
+	    (if(atom tree)
+	      (values nil nil)
+	      (progn (rec (car tree) (cons #'car path))
+		     (rec (cdr tree) (cons #'cdr path))))))
+    (rec tree)))
