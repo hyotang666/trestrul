@@ -825,28 +825,12 @@ NIL "
 (requirements-about PATH-TO)
 
 ;;;; Description:
-; Return list of functions, which guide you to target item in the tree.
+; Return list of function-names, which guide you to target item in the tree.
 ; Secondary value is foundp.
 #?(path-to 1 1) :values (NIL T)
-#?(path-to 1 '(1))
-:multiple-value-satisfies #`(& (listp $v1)
-			       (= 1 (length $v1))
-			       (eq #'car (car $v1))
-			       (eql 1 (reduce (lambda(tree path)
-						(funcall path tree))
-					      $v1
-					      :initial-value '(1)))
-			       (eq t $v2))
+#?(path-to 1 '(1)) :values ((CAR) T)
 #?(path-to 1 '(2)) :values (NIL NIL)
-#?(path-to 2 '(1 . 2))
-:multiple-value-satisfies #`(& (listp $v1)
-			       (= 1 (length $v1))
-			       (eq #'cdr (car $v1))
-			       (eql 2 (reduce (lambda(tree path)
-						(funcall path tree))
-					      $v1
-					      :initial-value '(1 . 2)))
-			       (eq t $v2))
+#?(path-to 2 '(1 . 2)) :values ((CDR) T)
 
 #+syntax
 (PATH-TO item tree &key (test #'eql)) ; => result

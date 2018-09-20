@@ -292,8 +292,8 @@
 	      (return-from path-to (values (nreverse path) T)))
 	    (if(atom tree)
 	      (values nil nil)
-	      (progn (rec (car tree) (cons #'car path))
-		     (rec (cdr tree) (cons #'cdr path))))))
+	      (progn (rec (car tree) (cons 'car path))
+		     (rec (cdr tree) (cons 'cdr path))))))
     (rec tree)))
 
 (defun follow (path tree)
