@@ -17,6 +17,7 @@
     #:find-node-if
     #:traverse
     #:path-to
+    #:follow
     ;;;; types
     #:tree
     #:proper-tree
@@ -294,3 +295,11 @@
 	      (progn (rec (car tree) (cons #'car path))
 		     (rec (cdr tree) (cons #'cdr path))))))
     (rec tree)))
+
+(defun follow (path tree)
+  (if(null path)
+    tree
+    (reduce (lambda(tree path)
+	      (funcall path tree))
+	    path
+	    :initial-value tree)))

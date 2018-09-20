@@ -871,3 +871,37 @@ NIL "
 
 ;;;; Exceptional-Situations:
 
+(requirements-about FOLLOW)
+
+;;;; Description:
+
+#+syntax
+(FOLLOW path tree) ; => result
+
+#?(let((tree '(1 (2 . 3)((((4) . 5))))))
+    (follow (path-to 5 tree)
+	    tree))
+=> 5
+
+;;;; Arguments and Values:
+
+; path := ((function(list)T)*)
+; Expects return value of `PATH-TO`.
+; When null, TREE is returned.
+#?(follow nil :a) => :A
+#?(follow nil '(:a . :b)) => (:A . :B)
+,:test equal
+
+; tree := Tree structured list, include atom. i.e. T.
+#?(follow (list #'car) '(:a . :b)) => :A
+
+; result := T
+
+;;;; Affected By:
+
+;;;; Side-Effects:
+
+;;;; Notes:
+
+;;;; Exceptional-Situations:
+
