@@ -22,6 +22,5 @@ TRESTRUL provides it.
 
 * Product's goal - merged by other utility libraries such as alexandria
 * License - public domain
-* Developped with - CLISP
-* Tested with - SBCL CCL ECL
+* Tested with - SBCL/1.4.15
 
