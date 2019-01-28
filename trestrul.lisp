@@ -89,6 +89,38 @@
 		       (REC (cdr tree)))))))
     (REC tree)))
 
+;;;; NMAPLEAF
+(declaim(ftype (function (function-designator tree) tree)
+	       nmapleaf))
+
+(defun nmapleaf(fun tree)
+  (check-type tree tree)
+  (%nmapleaf (coerce fun 'function)tree))
+
+(define-compiler-macro nmapleaf(fun tree)
+  `(%nmapleaf ,(typecase fun
+		 ((cons (eql quote)(cons symbol null))
+		  `#',(cadr fun))
+		 ((or (cons (eql function)T)
+		      (cons (eql lambda)T))
+		  fun)
+		 (t `(coerce ,fun 'function)))
+	      ,tree))
+
+(declaim (ftype (function (function tree) tree) %nmapleaf))
+
+(defun %nmapleaf(fun tree)
+  (declare (type function fun)
+	   (optimize(speed 3))
+	   (type tree tree))
+  (labels((REC(tree)
+	    (cond
+	      ((null tree)tree)
+	      ((atom tree)(values(funcall fun tree)))
+	      (t (rplaca tree (REC (car tree)))
+		 (rplacd tree (REC (cdr tree)))))))
+    (REC tree)))
+
 (macrolet((check(form type api)
 	    (let((datum(gensym "DATUM")))
 	      `(LET((,datum ,form))
@@ -98,16 +130,6 @@
 			 :FORMAT-ARGUMENTS (LIST ',api ,datum)
 			 :EXPECTED-TYPE 'TREE
 			 :DATUM ,datum)))))
-
-  (defun nmapleaf(fun tree)
-    (check tree tree nmapleaf)
-    (labels((REC(tree)
-	      (cond
-		((null tree)tree)
-		((atom tree)(funcall fun tree))
-		(t (rplaca tree (REC (car tree)))
-		   (rplacd tree (REC (cdr tree)))))))
-      (REC tree)))
 
   (defun collect-node(target tree &key (key #'identity)(test #'eql)recursive-p)
     (check tree tree collect-node)
