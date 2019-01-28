@@ -18,9 +18,11 @@
 
 ; fun := function which accepts one argument. Otherwise error.
 #?(op 0 '(1 2 3 4)) :signals error
+,:lazy t
 
 ; tree := tree structured list. Otherwise error.
-#?(op #'1+ 1) :signals invalid-tree
+#?(op #'1+ 1) :signals type-error
+,:lazy t
 
 ; result := see below.
 

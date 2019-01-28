@@ -54,6 +54,41 @@
 
 (define-condition invalid-tree(simple-type-error)())
 
+(deftype function-designator()
+  '(or function (and symbol (not(or boolean keyword)))))
+
+;;;; MAPLEAF
+(declaim(ftype (function (function-designator tree)
+			 tree)
+	       map-leaf))
+
+(defun mapleaf(fun tree)
+  (check-type tree tree)
+  (%mapleaf (coerce fun 'function) tree))
+
+(define-compiler-macro mapleaf(fun tree)
+  `(%mapleaf ,(typecase fun
+		((cons(eql quote)(cons symbol null))
+		 `#',(cadr fun))
+		((or (cons(eql function)t)
+		     (cons(eql lambda)t))
+		 fun)
+		(t `(coerce ,fun 'function)))
+	     ,tree))
+
+(declaim(ftype (function(function tree)tree) %mapleaf))
+
+(defun %mapleaf(fun tree)
+  (declare (type function fun)
+	   (type tree tree))
+  (labels((REC(tree)
+	    (cond
+	      ((null tree)tree)
+	      ((atom tree)(values(funcall fun tree)))
+	      (t (cons (REC (car tree))
+		       (REC (cdr tree)))))))
+    (REC tree)))
+
 (macrolet((check(form type api)
 	    (let((datum(gensym "DATUM")))
 	      `(LET((,datum ,form))
@@ -63,16 +98,6 @@
 			 :FORMAT-ARGUMENTS (LIST ',api ,datum)
 			 :EXPECTED-TYPE 'TREE
 			 :DATUM ,datum)))))
-
-  (defun mapleaf(fun tree)
-    (check tree tree mapleaf)
-    (labels((REC(tree)
-	      (cond
-		((null tree)tree)
-		((atom tree)(funcall fun tree))
-		(t (cons (REC (car tree))
-			 (REC (cdr tree)))))))
-      (REC tree)))
 
   (defun nmapleaf(fun tree)
     (check tree tree nmapleaf)
