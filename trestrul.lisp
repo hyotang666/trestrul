@@ -57,6 +57,15 @@
 (deftype function-designator()
   '(or function (and symbol (not(or boolean keyword)))))
 
+(defun ensure-function(form)
+  (typecase form
+    ((cons(eql quote)(cons symbol null))
+     `#',(cadr form))
+    ((or (cons(eql function)t)
+	 (cons(eql lambda)t))
+     form)
+    (t `(coerce ,form 'function))))
+
 ;;;; MAPLEAF
 (declaim(ftype (function (function-designator tree)
 			 tree)
@@ -67,13 +76,7 @@
   (%mapleaf (coerce fun 'function) tree))
 
 (define-compiler-macro mapleaf(fun tree)
-  `(%mapleaf ,(typecase fun
-		((cons(eql quote)(cons symbol null))
-		 `#',(cadr fun))
-		((or (cons(eql function)t)
-		     (cons(eql lambda)t))
-		 fun)
-		(t `(coerce ,fun 'function)))
+  `(%mapleaf ,(ensure-function fun)
 	     ,tree))
 
 (declaim(ftype (function(function tree)tree) %mapleaf))
@@ -98,13 +101,7 @@
   (%nmapleaf (coerce fun 'function)tree))
 
 (define-compiler-macro nmapleaf(fun tree)
-  `(%nmapleaf ,(typecase fun
-		 ((cons (eql quote)(cons symbol null))
-		  `#',(cadr fun))
-		 ((or (cons (eql function)T)
-		      (cons (eql lambda)T))
-		  fun)
-		 (t `(coerce ,fun 'function)))
+  `(%nmapleaf ,(ensure-function fun)
 	      ,tree))
 
 (declaim (ftype (function (function tree) tree) %nmapleaf))
