@@ -197,7 +197,33 @@
       (traverse t)
       (traverse nil))))
 
+;;;; REMOVE-LEAF-IF
+(declaim (ftype (function ((or symbol function)
+			   proper-tree
+			   &key
+			   (:key (or symbol function))
+			   (:keep boolean))
+			  proper-tree)
+		remove-leaf-if))
+
 (defun remove-leaf-if(function tree &key(key #'identity)(keep t))
+  (%remove-leaf-if (coerce function 'function)
+		   tree
+		   (coerce key 'function)
+		   keep))
+
+(define-compiler-macro remove-leaf-if (function tree &key (key '#'identity)(keep t))
+  `(%remove-leaf-if ,(ensure-function function)
+		    ,tree
+		    ,(ensure-function key)
+		    ,keep))
+
+(declaim (ftype (function (function proper-tree function boolean) proper-tree)
+		%remove-leaf-if))
+
+(defun %remove-leaf-if(function tree key keep)
+  (declare (type function function key)
+	   (optimize speed))
   (macrolet((traverse(keep)
 	      (flet((!(form)
 		      `(HANDLER-CASE,form

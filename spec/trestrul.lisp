@@ -143,7 +143,9 @@
 
 ; tree := tree structured list, otherwise error.
 #?(remove-leaf-if #'evenp 0)
-:signals invalid-tree
+:signals (or invalid-tree
+	     type-error ; for sbcl
+	     )
 
 ; key := function-desinator which designates the function which accepts one argument.
 #?(remove-if #'evenp '("1" "2" "3"))
