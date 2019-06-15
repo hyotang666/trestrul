@@ -97,7 +97,7 @@
 	       nmapleaf))
 
 (defun nmapleaf(fun tree)
-  (check-type tree tree)
+  (assert (typep tree 'tree))
   (%nmapleaf (coerce fun 'function)tree))
 
 (define-compiler-macro nmapleaf(fun tree)
