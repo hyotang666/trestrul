@@ -21,7 +21,7 @@
 ,:lazy t
 
 ; tree := tree structured list. Otherwise error.
-#?(op #'1+ 1) :signals type-error
+#?(op #'1+ 1) :signals error
 ,:lazy t
 
 ; result := see below.
