@@ -3,7 +3,8 @@
 (setup :trestrul)
 
 (common-requirements-about (mapleaf nmapleaf)
-			   :as op)
+			   :as op
+			   :doc-type function)
 
 #+syntax
 (OP fun tree) ; => result
@@ -36,14 +37,14 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about MAPLEAF)
+(requirements-about MAPLEAF :doc-type function)
 
 ; result := newly consed tree structured list.
 #?(let((tree'(1 . 2)))
     (eq tree (mapleaf #'identity tree)))
 => NIL
 
-(requirements-about NMAPLEAF)
+(requirements-about NMAPLEAF :doc-type function)
 
 ;;;; Side-Effects:
 ; argument TREE is destructively modified.
@@ -51,7 +52,7 @@
     (eq tree (nmapleaf #'1+ tree)))
 => T
 
-(requirements-about REMOVE-LEAF)
+(requirements-about REMOVE-LEAF :doc-type function)
 
 ;;;; Description:
 ; remove specified LEAF from TREE.
@@ -120,7 +121,7 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about REMOVE-LEAF-IF)
+(requirements-about REMOVE-LEAF-IF :doc-type function)
 
 ;;;; Description:
 ; Remove leaf which satisfies FUNCTION.
@@ -179,7 +180,7 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about DOTREE)
+(requirements-about DOTREE :doc-type function)
 
 ;;;; Description:
 ; iterate body with var bound by each leaf of TREE.
@@ -271,7 +272,7 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about COLLECT-NODE)
+(requirements-about COLLECT-NODE :doc-type function)
 
 ;;;; Description:
 ; collect node from TREE.
@@ -359,7 +360,8 @@
 ;;;; Exceptional-Situations:
 
 (common-requirements-about (ASUBST ANSUBST)
-			   :as op)
+			   :as op
+			   :doc-type function)
 
 ;;;; Description:
 ; Substitute tree with applying substituter.
@@ -418,7 +420,7 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about ASUBST)
+(requirements-about ASUBST :doc-type function)
 
 ; result := may newly consed substituted value.
 #?(let((tree '(:a :b :c)))
@@ -427,7 +429,7 @@
 		     tree)))
 => NIL
 
-(requirements-about ANSUBST)
+(requirements-about ANSUBST :doc-type function)
 
 ; result := may destructively modified substituted value.
 #?(let((tree '(:a :b :c)))
@@ -436,7 +438,7 @@
 		      tree)))
 => T
 
-(requirements-about ASUBST-IF)
+(requirements-about ASUBST-IF :doc-type function)
 
 ;;;; Description:
 ; substitute leaf which satisfies PREDICATE.
@@ -504,7 +506,7 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about TREE)
+(requirements-about TREE :doc-type type)
 ;;;; Description:
 ; Tree structured list which includes NIL and dotted pair.
 #?(typep nil 'tree) => T
@@ -520,7 +522,7 @@
 
 ;;;; Compound Type Specifier Description:
 
-(requirements-about PROPER-TREE)
+(requirements-about PROPER-TREE :doc-type type)
 ;;;; Description:
 ; Tree structured list but without dotted pair.
 #?(typep () 'proper-tree) => T
@@ -539,7 +541,7 @@
 
 ;;;; Compound Type Specifier Description:
 
-(requirements-about TREEP)
+(requirements-about TREEP :doc-type function)
 
 ;;;; Description:
 ; Tests arg is tree.
@@ -566,7 +568,7 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about PROPER-TREEP)
+(requirements-about PROPER-TREEP :doc-type function)
 
 ;;;; Description:
 ; Tests arg is proper-tree.
@@ -594,7 +596,7 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about INVALID-TREE)
+(requirements-about INVALID-TREE :doc-type type)
 
 ;;;; Description:
 ;;;; Class Precedence List: (case in SBCL)
@@ -616,7 +618,7 @@
 
 ;;;; Notes:
 
-(requirements-about FIND-LEAF)
+(requirements-about FIND-LEAF :doc-type function)
 
 ;;;; Description:
 ; Find target from tree.
@@ -651,7 +653,7 @@
 
 ;;;; Exceptional-Situations:
 
-(requirements-about TRAVERSE)
+(requirements-about TRAVERSE :doc-type function)
 
 ;;;; Description:
 ; Traverse TREE with doing FUNCTION.
@@ -716,7 +718,7 @@ NIL "
 
 ;;;; Exceptional-Situations:
 
-(requirements-about FIND-LEAF-IF)
+(requirements-about FIND-LEAF-IF :doc-type function)
 
 ;;;; Description:
 ; Find element which satisfies PRED from TREE.
@@ -762,7 +764,7 @@ NIL "
 
 ;;;; Exceptional-Situations:
 
-(requirements-about FIND-NODE-IF)
+(requirements-about FIND-NODE-IF :doc-type function)
 
 ;;;; Description:
 ; Find node which satisfies `PRED` from `TREE`.
@@ -827,7 +829,7 @@ NIL "
 
 ;;;; Exceptional-Situations:
 
-(requirements-about PATH-TO)
+(requirements-about PATH-TO :doc-type function)
 
 ;;;; Description:
 ; Return list of function-names, which guide you to target item in the tree.
@@ -860,7 +862,7 @@ NIL "
 
 ;;;; Exceptional-Situations:
 
-(requirements-about FOLLOW)
+(requirements-about FOLLOW :doc-type function)
 
 ;;;; Description:
 
