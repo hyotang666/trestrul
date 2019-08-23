@@ -145,6 +145,7 @@
 #?(remove-leaf-if #'evenp 0)
 :signals (or invalid-tree
 	     type-error ; for sbcl
+	     warning ; for ccl
 	     )
 
 ; key := function-desinator which designates the function which accepts one argument.
