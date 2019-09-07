@@ -25,6 +25,6 @@ merged by other utility libraries such as alexandria
 ### License
 public domain
 ### Tested with
-SBCL/1.5.1
+SBCL/1.5.6
 CCL/1.11.5
 
