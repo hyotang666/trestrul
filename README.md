@@ -1,4 +1,7 @@
-# TRESTRUL 0.0.0 - Tiny utilities for TREe-STRUctured-List.
+# TRESTRUL 0.0.6
+
+## What is this?
+Tiny utilities for TREe-STRUctured-List.
 
 ## Current lisp world
 List is very flexible.
@@ -23,8 +26,10 @@ TRESTRUL provides it.
 ### Product's goal
 merged by other utility libraries such as alexandria
 ### License
-public domain
-### Tested with
-SBCL/1.5.6
-CCL/1.11.5
+Public Domain
 
+### Tested with
+SBCL/1.5.8
+CCL/1.11.5
+CLISP/2.49
+ECL/16.1.3
