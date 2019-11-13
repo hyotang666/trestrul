@@ -68,7 +68,7 @@
 
 ;;;; MAPLEAF
 (declaim(ftype (function (function-designator tree)
-			 tree)
+			 (values tree &optional))
 	       map-leaf))
 
 (defun mapleaf(fun tree)
@@ -79,7 +79,9 @@
   `(%mapleaf ,(ensure-function fun)
 	     ,tree))
 
-(declaim(ftype (function(function tree)tree) %mapleaf))
+(declaim(ftype (function(function tree)
+		 (values tree &optional))
+	       %mapleaf))
 
 (defun %mapleaf(fun tree)
   (declare (type function fun)
@@ -93,7 +95,8 @@
     (REC tree)))
 
 ;;;; NMAPLEAF
-(declaim(ftype (function (function-designator tree) tree)
+(declaim(ftype (function (function-designator tree)
+			 (values tree &optional))
 	       nmapleaf))
 
 (defun nmapleaf(fun tree)
@@ -104,7 +107,9 @@
   `(%nmapleaf ,(ensure-function fun)
 	      ,tree))
 
-(declaim (ftype (function (function tree) tree) %nmapleaf))
+(declaim (ftype (function (function tree)
+			  (values tree &optional))
+		%nmapleaf))
 
 (defun %nmapleaf(fun tree)
   (declare (type function fun)
@@ -203,7 +208,7 @@
 			   &key
 			   (:key (or symbol function))
 			   (:keep boolean))
-			  proper-tree)
+			  (values proper-tree &optional))
 		remove-leaf-if))
 
 (defun remove-leaf-if(function tree &key(key #'identity)(keep t))
@@ -218,7 +223,8 @@
 		    ,(ensure-function key)
 		    ,keep))
 
-(declaim (ftype (function (function proper-tree function boolean) proper-tree)
+(declaim (ftype (function (function proper-tree function boolean)
+			  (values proper-tree &optional))
 		%remove-leaf-if))
 
 (defun %remove-leaf-if(function tree key keep)
