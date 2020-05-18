@@ -40,7 +40,7 @@
 (requirements-about MAPLEAF :doc-type function)
 
 ; result := newly consed tree structured list.
-#?(let((tree'(1 . 2)))
+#?(let ((tree '(1 . 2)))
     (eq tree (mapleaf #'identity tree)))
 => NIL
 
@@ -48,7 +48,7 @@
 
 ;;;; Side-Effects:
 ; argument TREE is destructively modified.
-#?(let((tree '(1 2 3)))
+#?(let ((tree '(1 2 3)))
     (eq tree (nmapleaf #'1+ tree)))
 => T
 
@@ -66,7 +66,7 @@
 ;;;; Arguments and Values:
 
 ; item := non NIL atom, otherwise unspecified.
-#?(remove-leaf () '(()1 2)) => unspecified
+#?(remove-leaf () '(() 1 2)) => unspecified
 
 ; tree := tree structured list, otherwise error.
 #?(remove-leaf 1 1) :signals invalid-tree
@@ -89,7 +89,7 @@
 #?(remove-leaf 1 '("2" "1" "0"))
 => ("2" "1" "0")
 ,:test equal
-#?(remove-leaf 1 '("2" "1" "0"):key #'parse-integer)
+#?(remove-leaf 1 '("2" "1" "0") :key #'parse-integer)
 => ("2" "0")
 ,:test equal
 #?(remove-leaf "1" '("2" "1" "0") :key :not-function-designator)
@@ -106,7 +106,7 @@
 ,:test tree-equal
 
 ; result := newly consed tree structured list.
-#?(let((tree '(1 2 3 4 5)))
+#?(let ((tree '(1 2 3 4 5)))
     (eq tree (remove-leaf 0 tree)))
 => NIL
 
@@ -166,7 +166,7 @@
 ,:test tree-equal
 
 ; result := newly consed tree structured list.
-#?(let((tree '(1 2 3)))
+#?(let ((tree '(1 2 3)))
     (eq tree (remove-leaf-if #'evenp tree)))
 => NIL
 
@@ -184,7 +184,7 @@
 
 ;;;; Description:
 ; iterate body with var bound by each leaf of TREE.
-#?(dotree(l '(1 2 . 3))
+#?(dotree (l '(1 2 . 3))
     (princ l))
 :outputs "123"
 
@@ -194,20 +194,20 @@
 ;;;; Arguments and Values:
 
 ; var := symbol which bound by each leaf. otherwise error.
-#?(dotree(0 '(1 2 . 3))
+#?(dotree (0 '(1 2 . 3))
     (princ 0))
 :signals error
 
 ; tree := tree generate form. Not evaluated.
 ; When the form does not generate tree structured list,
 ; an error is signaled.
-#?(dotree(l 'tree)
+#?(dotree (l 'tree)
     (princ l))
 :signals invalid-tree
 ,:ignore-signals warning
 
 ; return := return form which evaluated only once after iteration.
-#?(dotree(l '(1 2 . 3) :result)
+#?(dotree (l '(1 2 . 3) :result)
     (princ l))
 => :RESULT
 ,:stream NIL
@@ -215,7 +215,7 @@
 ; body := implicit progn
 
 ; result := return value of RETURN. The default is nil.
-#?(dotree(l '(1 2 . 3))
+#?(dotree (l '(1 2 . 3))
     (1+ l))
 => NIL
 
@@ -227,41 +227,41 @@
 
 ;;;; Notes:
 ; can declare about VAR at top of BODY.
-#?(dotree(l '(1 2 . 3))
-    (declare(type fixnum l))
+#?(dotree (l '(1 2 . 3))
+    (declare (type fixnum l))
     (princ l))
 :outputs "123"
 
 ; VAR is able to see from RETURN form,
 ; but VAR is bound NIL in such time.
-#?(dotree(l '(1 2 . 3)(princ l))
+#?(dotree (l '(1 2 . 3) (princ l))
     (1+ l))
 :outputs "NIL"
 
 ; BLOCK named NIL is implicitly established.
 ; So RETURN is able to be used.
-#?(dotree(l '(1 2 3 4))
-    (if(= 3 l)
+#?(dotree (l '(1 2 3 4))
+    (if (= 3 l)
       (return)
       (princ l)))
 :outputs "12"
 
 ; When empty tree comes, only return form is evaluated.
-#?(dotree(l () :hoge)
+#?(dotree (l () :hoge)
     (princ l))
 => :hoge
 
 ; When CL:RETURN is called, RETURN form is not evaluated.
-#?(dotree(l '(1 2 3 4)(princ l))
-    (if(= l 3)
+#?(dotree (l '(1 2 3 4) (princ l))
+    (if (= l 3)
       (return)
       (princ l)))
 :outputs "12"
 
 ; TAGBODY is implicitly established.
 ; So GO is able to be used in body.
-#?(dotree(l '(1 2 3 4))
-    (if(= 3 l)
+#?(dotree (l '(1 2 3 4))
+    (if (= 3 l)
       (go 3)
       (go :end))
     3
@@ -280,7 +280,7 @@
 			       (:export :a :b :c)
 			       (:export :d :e :f))
 		:key #'car)
-=> ((:export :a :b :c)(:export :d :e :f))
+=> ((:export :a :b :c) (:export :d :e :f))
 ,:test equal
 
 #+syntax
@@ -296,14 +296,14 @@
 ; key := function designator which designates the function which accepts one node as argument.
 ; The default is CL:IDENTITY.
 ; If it is not function designator, an error is signaled.
-#?(collect-node :use '((:use :cl)(:export :a :b :c))
+#?(collect-node :use '((:use :cl) (:export :a :b :c))
 		:key :not-function-designator)
 :signals undefined-function
 
 ; test := function designator which designates the function which accepts two arguments.
 ; The default is CL:EQL.
 ; if it is not function-designator, an error is signaled.
-#?(collect-node '(:use :cl) '((:use :cl)(:export :a :b :c))
+#?(collect-node '(:use :cl) '((:use :cl) (:export :a :b :c))
 		:test :not-function-designator)
 :signals undefined-function
 
@@ -333,7 +333,7 @@
 #?(collect-node :tag '((:tag 1 (:tag 2))))
 => NIL
 
-#?(collect-node nil '((:tag 1 ()(:tag 2 ()))))
+#?(collect-node nil '((:tag 1 () (:tag 2 ()))))
 => (NIL NIL NIL NIL NIL)
 ;; i.e. ((:tag 1 NIL (:tag 2 NIL . NIL) . NIL) . NIL)
 ,:test equal
@@ -402,7 +402,7 @@
 ; key := function designator which designates the function which accepts one argument.
 #?(op (constantly :zero) 0 '("1" "2" "3" "0")
 	  :key #'(lambda(x)
-		   (if(stringp x)
+		   (if (stringp x)
 		     (parse-integer x)
 		     x)))
 => ("1" "2" "3" :ZERO)
@@ -423,7 +423,7 @@
 (requirements-about ASUBST :doc-type function)
 
 ; result := may newly consed substituted value.
-#?(let((tree '(:a :b :c)))
+#?(let ((tree '(:a :b :c)))
     (eq tree (asubst (constantly :hoge)
 		     :a
 		     tree)))
@@ -432,7 +432,7 @@
 (requirements-about ANSUBST :doc-type function)
 
 ; result := may destructively modified substituted value.
-#?(let((tree '(:a :b :c)))
+#?(let ((tree '(:a :b :c)))
     (eq tree (ansubst (constantly :hoge)
 		      :a
 		      tree)))
@@ -626,7 +626,7 @@
 #+syntax
 (FIND-LEAF target tree &key (test #'eql) (key #'identity)) ; => result
 
-#?(find-leaf 0 '(1 (2 . 3)((0)))) => 0
+#?(find-leaf 0 '(1 (2 . 3) ((0)))) => 0
 
 ;;;; Arguments and Values:
 
@@ -703,8 +703,8 @@ NIL "
 ; `TRAVERSE` dinamically construct `CATCH` tag named `TRAVERSE`.
 ; You can use it to skip traversing.
 #?(traverse (lambda(x)
-	      (if(and (listp x)
-		      (eql 2 (car x)))
+	      (if (and (listp x)
+		       (eql 2 (car x)))
 		(throw 'traverse nil)
 		(print x)))
 	    '(1 (2 . 3) 4))
@@ -785,33 +785,33 @@ NIL "
 #?(find-node-if #'identity nil :count "not (integer 1 *)")
 :signals error
 ; `COUNT` specify Nth value. The default is 1.
-#?(find-node-if (lambda(x)(typep x '(cons (eql :a)*)))
-		'((:a 1)(:a 2)(:a 3)))
+#?(find-node-if (lambda(x) (typep x '(cons (eql :a) *)))
+		'((:a 1) (:a 2) (:a 3)))
 => (:a 1)
 ,:test equal
-#?(find-node-if (lambda(x)(typep x '(cons (eql :a)*)))
-		'((:a 1)(:a 2)(:a 3))
+#?(find-node-if (lambda(x) (typep x '(cons (eql :a) *)))
+		'((:a 1) (:a 2) (:a 3))
 		:count 2)
 => (:A 2)
 ,:test equal
-#?(find-node-if (lambda(x)(typep x '(cons (eql :a)*)))
-		'((:a 1)(:a 2)(:a 3))
+#?(find-node-if (lambda(x) (typep x '(cons (eql :a) *)))
+		'((:a 1) (:a 2) (:a 3))
 		:count 3)
 => (:A 3)
 ,:test equal
-#?(find-node-if (lambda(x)(typep x '(cons (eql :a)*)))
-		'((:a 1)(:a 2)(:a 3))
+#?(find-node-if (lambda(x) (typep x '(cons (eql :a) *)))
+		'((:a 1) (:a 2) (:a 3))
 		:count 4)
 => NIL
 
 ; recursive-p := Generalized boolean. The default is `NIL`.
-#?(find-node-if (lambda(x)(eq :a (car x)))
+#?(find-node-if (lambda(x) (eq :a (car x)))
 		'((:a 1 :a 2 :a 3) (:a 4))
 		:count 2)
 => (:A 4)
 ,:test equal
-#?(find-node-if (lambda(x)(eq :a (car x)))
-		'((:a 1 :a 2 :a 3)(:a 4))
+#?(find-node-if (lambda(x) (eq :a (car x)))
+		'((:a 1 :a 2 :a 3) (:a 4))
 		:count 2
 		:recursive-p t)
 => (:A 2 :A 3)
@@ -869,7 +869,7 @@ NIL "
 #+syntax
 (FOLLOW path tree) ; => result
 
-#?(let((tree '(1 (2 . 3)((((4) . 5))))))
+#?(let ((tree '(1 (2 . 3) ((((4) . 5))))))
     (follow (path-to 5 tree)
 	    tree))
 => 5
