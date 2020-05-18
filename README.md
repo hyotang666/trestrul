@@ -29,7 +29,7 @@ merged by other utility libraries such as alexandria
 Public Domain
 
 ### Tested with
-SBCL/1.5.8
-CCL/1.11.5
+SBCL/2.0.2
+CCL/1.12
 CLISP/2.49
-ECL/16.1.3
+ECL/20.4.24
