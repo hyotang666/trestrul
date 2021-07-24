@@ -59,29 +59,13 @@
 (deftype function-designator ()
   '(or function (and symbol (not (or boolean keyword)))))
 
-(defun ensure-function (form)
-  (typecase form
-    ((cons (eql quote) (cons symbol null)) `#',(cadr form))
-    ((or (cons (eql function) t) (cons (eql lambda) t)) form)
-    (t `(coerce ,form 'function))))
-
 ;;;; MAPLEAF
 
 (declaim
  (ftype (function (function-designator tree) (values tree &optional)) map-leaf))
 
-(defun mapleaf (fun tree)
+(defun mapleaf (fun tree &aux (fun (coerce fun 'function)))
   (check-type tree tree)
-  (%mapleaf (coerce fun 'function) tree))
-
-(define-compiler-macro mapleaf (fun tree)
-  `(%mapleaf ,(ensure-function fun) ,tree))
-
-(declaim (ftype (function (function tree) (values tree &optional)) %mapleaf))
-
-(defun %mapleaf (fun tree)
-  (declare (type function fun)
-           (type tree tree))
   (labels ((rec (tree)
              (cond ((null tree) tree)
                    ((atom tree) (values (funcall fun tree)))
@@ -93,19 +77,8 @@
 (declaim
  (ftype (function (function-designator tree) (values tree &optional)) nmapleaf))
 
-(defun nmapleaf (fun tree)
+(defun nmapleaf (fun tree &aux (fun (coerce fun 'function)))
   (assert (typep tree 'tree))
-  (%nmapleaf (coerce fun 'function) tree))
-
-(define-compiler-macro nmapleaf (fun tree)
-  `(%nmapleaf ,(ensure-function fun) ,tree))
-
-(declaim (ftype (function (function tree) (values tree &optional)) %nmapleaf))
-
-(defun %nmapleaf (fun tree)
-  (declare (type function fun)
-           (optimize (speed 3))
-           (type tree tree))
   (labels ((rec (tree)
              (cond ((null tree) tree)
                    ((atom tree) (values (funcall fun tree)))
@@ -211,23 +184,11 @@
          (values proper-tree &optional))
         remove-leaf-if))
 
-(defun remove-leaf-if (function tree &key (key #'identity) (keep t))
-  (%remove-leaf-if (coerce function 'function) tree (coerce key 'function)
-                   keep))
-
-(define-compiler-macro remove-leaf-if
-                       (function tree &key (key '#'identity) (keep t))
-  `(%remove-leaf-if ,(ensure-function function) ,tree ,(ensure-function key)
-                    ,keep))
-
-(declaim
- (ftype (function (function proper-tree function boolean)
-         (values proper-tree &optional))
-        %remove-leaf-if))
-
-(defun %remove-leaf-if (function tree key keep)
-  (declare (type function function key)
-           (optimize speed))
+(defun remove-leaf-if
+       (function tree
+        &key (key #'identity) (keep t)
+        &aux (function (coerce function 'function))
+        (key (coerce key 'function)))
   (macrolet ((traverse (keep)
                (flet ((! (form)
                         `(handler-case ,form
