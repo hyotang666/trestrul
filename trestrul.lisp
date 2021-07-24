@@ -132,7 +132,7 @@
                              (etypecase tree
                                (null ; END OF PROPER LIST
                                 (when (funcall test target (funcall key tree))
-                                  (push tree acc)))
+                                  (rplacd tail (setf tail (list tree)))))
                                (atom ; END OF DOTTED LIST
                                 nil) ; ignore leaf.
                                (cons ; PROGRESS
@@ -147,18 +147,20 @@
                                  (progn (rec node) (rec rest))))
                            (target-is-found (found rest)
                              ,(if (not rec-p)
-                                  `(progn (push found acc) (rec rest))
                                   `(progn
-                                    (push found acc)
+                                    (rplacd tail (setf tail (list found)))
+                                    (rec rest))
+                                  `(progn
+                                    (rplacd tail (setf tail (list found)))
                                     (when found
                                       (rec found))
                                     (rec rest)))))
                     (rec tree))))
-      (let (acc)
+      (let* ((acc (cons :head nil)) (tail acc))
         (if recursive-p
             (expand t)
             (expand nil))
-        (nreverse acc)))))
+        (cdr acc)))))
 
 (defun remove-leaf
        (item tree
@@ -175,22 +177,26 @@
                                     :datum tree))))
                       (may-push (keep)
                         (if keep
-                            `(push (rec (car first) (cdr first)) acc)
+                            `(rplacd tail
+                                     (setf tail
+                                             (list
+                                               (rec (car first) (cdr first)))))
                             `(let ((it (rec (car first) (cdr first))))
-                               (if it
-                                   (push it acc)
-                                   acc)))))
-                 `(labels ((rec (first rest &optional acc)
+                               (when it
+                                 (rplacd tail (setf tail (list it))))))))
+                 `(labels ((rec
+                               (first rest
+                                &optional (acc (cons nil nil)) (tail acc))
                              (etypecase first
                                (cons
-                                (rec (car rest) (cdr rest) ,(may-push keep)))
-                               (null (nreverse acc))
+                                ,(may-push keep)
+                                (rec (car rest) (cdr rest) acc tail))
+                               (null (cdr acc))
                                (atom
-                                (rec ,(! `(car rest)) (cdr rest)
-                                     (if (funcall test item
-                                                  (funcall key first))
-                                         acc
-                                         (push first acc)))))))
+                                (if (funcall test item (funcall key first))
+                                    acc
+                                    (rplacd tail (setf tail (list first))))
+                                (rec ,(! `(car rest)) (cdr rest) acc tail)))))
                     (rec ,(! `(car tree)) (cdr tree))))))
     (if keep
         (traverse t)
@@ -233,21 +239,26 @@
                                     :datum tree))))
                       (may-push (keep)
                         (if keep
-                            `(push (rec (car first) (cdr first)) acc)
+                            `(rplacd tail
+                                     (setf tail
+                                             (list
+                                               (rec (car first) (cdr first)))))
                             `(let ((it (rec (car first) (cdr first))))
-                               (if it
-                                   (push it acc)
-                                   acc)))))
-                 `(labels ((rec (first rest &optional acc)
+                               (when it
+                                 (rplacd tail (setf tail (list it))))))))
+                 `(labels ((rec
+                               (first rest
+                                &optional (acc (cons nil nil)) (tail acc))
                              (etypecase first
                                (cons
-                                (rec (car rest) (cdr rest) ,(may-push keep)))
-                               (null (nreverse acc))
+                                ,(may-push keep)
+                                (rec (car rest) (cdr rest) acc tail))
+                               (null (cdr acc))
                                (atom
-                                (rec ,(! `(car rest)) (cdr rest)
-                                     (if (funcall function (funcall key first))
-                                         acc
-                                         (push first acc)))))))
+                                (if (funcall function (funcall key first))
+                                    acc
+                                    (rplacd tail (setf tail (list first))))
+                                (rec ,(! `(car rest)) (cdr rest) acc tail)))))
                     (rec ,(! `(car tree)) (cdr tree))))))
     (if keep
         (traverse t)
