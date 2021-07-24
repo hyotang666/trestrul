@@ -7,8 +7,10 @@
   :description "Tiny utilities for TREe-STRUctured-List."
   :long-description #.(uiop:read-file-string
                         (uiop:subpathname *load-pathname* "README.md"))
-  :author "Shinichi Sato"
+  :author "SATO Shinichi"
   :license "Public Domain"
+  :source-control (:git "git@github.com:hyotang666/trestrul")
+  :bug-tracker "https://github.com/hyotang666/trestrul/issues"
   :components ((:file "trestrul")))
 
 ;;; These forms below are added by JINGOH.GENERATOR.
