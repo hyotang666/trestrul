@@ -30,6 +30,8 @@
 
 (in-package :trestrul)
 
+(declaim (optimize speed))
+
 (deftype tree ()
   "Tree structured list which includes NIL and dotted pair."
   'list)
@@ -72,8 +74,7 @@
   (check-type tree tree)
   (%mapleaf (coerce fun 'function) tree))
 
-(define-compiler-macro mapleaf
-    (fun tree)
+(define-compiler-macro mapleaf (fun tree)
   `(%mapleaf ,(ensure-function fun) ,tree))
 
 (declaim (ftype (function (function tree) (values tree &optional)) %mapleaf))
@@ -96,8 +97,7 @@
   (assert (typep tree 'tree))
   (%nmapleaf (coerce fun 'function) tree))
 
-(define-compiler-macro nmapleaf
-    (fun tree)
+(define-compiler-macro nmapleaf (fun tree)
   `(%nmapleaf ,(ensure-function fun) ,tree))
 
 (declaim (ftype (function (function tree) (values tree &optional)) %nmapleaf))
@@ -109,20 +109,23 @@
   (labels ((rec (tree)
              (cond ((null tree) tree)
                    ((atom tree) (values (funcall fun tree)))
-                   (t (rplaca tree (rec (car tree)))
-                      (rplacd tree (rec (cdr tree)))))))
+                   (t
+                    (rplaca tree (rec (car tree)))
+                    (rplacd tree (rec (cdr tree)))))))
     (rec tree)))
 
 (macrolet ((check (form type api)
              (let ((datum (gensym "DATUM")))
                `(let ((,datum ,form))
-                  (assert (typep ,datum ',type) () 'invalid-tree
-                    :format-control "~S: Must tree but ~S"
-                    :format-arguments (list ',api ,datum)
-                    :expected-type 'tree
-                    :datum ,datum)))))
+                  (assert (typep ,datum ',type) ()
+                    'invalid-tree :format-control "~S: Must tree but ~S"
+                                  :format-arguments (list ',api ,datum)
+                                  :expected-type 'tree
+                                  :datum ,datum)))))
   (defun collect-node
-         (target tree &key (key #'identity) (test #'eql) recursive-p)
+         (target tree
+          &key (key #'identity) (test #'eql) recursive-p
+          &aux (key (coerce key 'function)) (test (coerce test 'function)))
     (check tree tree collect-node)
     (macrolet ((expand (rec-p)
                  `(labels ((rec (tree)
@@ -157,7 +160,10 @@
             (expand nil))
         (nreverse acc)))))
 
-(defun remove-leaf (item tree &key (test #'eql) (key #'identity) (keep t))
+(defun remove-leaf
+       (item tree
+        &key (test #'eql) (key #'identity) (keep t)
+        &aux (test (coerce test 'function)) (key (coerce key 'function)))
   (macrolet ((traverse (keep)
                (flet ((! (form)
                         `(handler-case ,form
@@ -204,7 +210,7 @@
                    keep))
 
 (define-compiler-macro remove-leaf-if
-    (function tree &key (key '#'identity) (keep t))
+                       (function tree &key (key '#'identity) (keep t))
   `(%remove-leaf-if ,(ensure-function function) ,tree ,(ensure-function key)
                     ,keep))
 
@@ -291,63 +297,92 @@
                               ,rest (cdr ,rest))))))
            (go ,top))))))
 
-(defun asubst (substituter target tree &key (test #'eql) (key #'identity))
-  (if (funcall test target (funcall key tree))
-      (funcall substituter tree)
-      (if (atom tree)
-          tree
-          (cons (asubst substituter target (car tree) :test test :key key)
-                (asubst substituter target (cdr tree) :test test :key key)))))
+(defun asubst
+       (substituter target tree
+        &key (test #'eql) (key #'identity)
+        &aux (test (coerce test 'function)) (key (coerce key 'function))
+        (substituter (coerce substituter 'function)))
+  (labels ((rec (tree)
+             (if (funcall test target (funcall key tree))
+                 (funcall substituter tree)
+                 (if (atom tree)
+                     tree
+                     (cons (rec (car tree)) (rec (cdr tree)))))))
+    (rec tree)))
 
-(defun asubst-if (substituter predicate tree &key (key #'identity))
-  (if (funcall predicate (funcall key tree))
-      (funcall substituter tree)
-      (if (atom tree)
-          tree
-          (cons (asubst-if substituter predicate (car tree) :key key)
-                (asubst-if substituter predicate (cdr tree) :key key)))))
+(defun asubst-if
+       (substituter predicate tree
+        &key (key #'identity)
+        &aux (key (coerce key 'function))
+        (substituter (coerce substituter 'function))
+        (predicate (coerce predicate 'function)))
+  (labels ((rec (tree)
+             (if (funcall predicate (funcall key tree))
+                 (funcall substituter tree)
+                 (if (atom tree)
+                     tree
+                     (cons (rec (car tree)) (rec (cdr tree)))))))
+    (rec tree)))
 
-(defun ansubst (substituter target tree &key (test #'eql) (key #'identity))
-  (if (funcall test target (funcall key tree))
-      (funcall substituter tree)
-      (if (atom tree)
-          tree
-          (progn
-           (rplaca tree
-                   (ansubst substituter target (car tree) :test test :key key))
-           (rplacd tree
-                   (ansubst substituter target (cdr tree)
-                            :test test
-                            :key key))))))
+(defun ansubst
+       (substituter target tree
+        &key (test #'eql) (key #'identity)
+        &aux (substituter (coerce substituter 'function))
+        (test (coerce test 'function)) (key (coerce key 'function)))
+  (labels ((rec (tree)
+             (if (funcall test target (funcall key tree))
+                 (funcall substituter tree)
+                 (if (atom tree)
+                     tree
+                     (progn
+                      (rplaca tree (rec (car tree)))
+                      (rplacd tree (rec (cdr tree))))))))
+    (rec tree)))
 
-(defun ansubst-if (substituter predicate tree &key (key #'identity))
-  (if (funcall predicate (funcall key tree))
-      (funcall substituter tree)
-      (if (atom tree)
-          tree
-          (progn
-           (rplaca tree (ansubst-if substituter predicate (car tree) :key key))
-           (rplacd tree
-                   (ansubst-if substituter predicate (cdr tree) :key key))))))
+(defun ansubst-if
+       (substituter predicate tree
+        &key (key #'identity)
+        &aux (substituter (coerce substituter 'function))
+        (predicate (coerce predicate 'function)) (key (coerce key 'function)))
+  (labels ((rec (tree)
+             (if (funcall predicate (funcall key tree))
+                 (funcall substituter tree)
+                 (if (atom tree)
+                     tree
+                     (progn
+                      (rplaca tree (rec (car tree)))
+                      (rplacd tree (rec (cdr tree))))))))
+    (rec tree)))
 
-(defun find-leaf (target tree &key (test #'eql) (key #'identity))
+(defun find-leaf
+       (target tree
+        &key (test #'eql) (key #'identity)
+        &aux (test (coerce test 'function)) (key (coerce key 'function)))
   (dotree (var tree)
     (when (funcall test target (funcall key var))
       (return var))))
 
-(defun traverse (function tree)
-  (funcall function tree)
-  (unless (atom tree)
-    (catch 'traverse (traverse function (car tree)))
-    (catch 'traverse (traverse function (cdr tree)))))
+(defun traverse (function tree &aux (function (coerce function 'function)))
+  (labels ((rec (tree)
+             (funcall function tree)
+             (unless (atom tree)
+               (catch 'traverse (rec (car tree)))
+               (catch 'traverse (rec (cdr tree))))))
+    (rec tree)))
 
-(defun find-leaf-if (pred tree &key (key #'identity))
+(defun find-leaf-if
+       (pred tree
+        &key (key #'identity)
+        &aux (pred (coerce pred 'function)) (key (coerce key 'function)))
   (dotree (var tree)
     (when (funcall pred (funcall key var))
       (return var))))
 
-(defun find-node-if (pred tree &key (count 1) recursive-p)
-  (check-type count (integer 1 *))
+(defun find-node-if
+       (pred tree
+        &key (count 1) recursive-p
+        &aux (pred (coerce pred 'function)))
+  (declare (type (integer 0 #.most-positive-fixnum) count))
   (traverse
     (lambda (node)
       (when (and (listp node)
@@ -355,10 +390,13 @@
                  (cond ((zerop (decf count)) t)
                        (recursive-p nil)
                        (t (throw 'traverse nil))))
-        (return-from find-node-if node)))
+        (locally
+         (declare (optimize (speed 1)))
+         (return-from find-node-if node))))
     tree))
 
-(defun path-to (item tree &key (test #'eql))
+(defun path-to
+       (item tree &key (test #'eql) &aux (test (coerce test 'function)))
   (labels ((rec (tree &optional path)
              (when (funcall test item tree)
                (return-from path-to (values (nreverse path) t)))
@@ -372,5 +410,5 @@
 (defun follow (path tree)
   (if (null path)
       tree
-      (reduce (lambda (tree path) (funcall path tree)) path
+      (reduce (lambda (tree path) (funcall (coerce path 'function) tree)) path
               :initial-value tree)))
