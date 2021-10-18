@@ -355,7 +355,7 @@
         &key (count 1) recursive-p
         &aux (pred (coerce pred 'function)))
   (declare (type (integer 0 #.most-positive-fixnum) count))
-  #+allegro
+  #+(or allegro ccl)
   (check-type count (mod #.most-positive-fixnum))
   (traverse
     (lambda (node)
