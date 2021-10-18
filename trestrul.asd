@@ -3,7 +3,7 @@
 (in-package :asdf)
 
 (defsystem :trestrul
-  :version "0.0.12"
+  :version "0.0.13"
   :description "Tiny utilities for TREe-STRUctured-List."
   :long-description #.(uiop:read-file-string
                         (uiop:subpathname *load-pathname* "README.md"))
